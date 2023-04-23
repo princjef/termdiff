@@ -1,0 +1,9 @@
+/coverage.txt
+
+# editor and IDE paraphernalia
+.vscode/*
+.idea
+*.iml
+*.swp
+*.swo
+*~
