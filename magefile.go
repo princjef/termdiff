@@ -41,6 +41,10 @@ func Doc() error {
 }
 
 func DocVerify() error {
+	if err := documenter.Ensure(); err != nil {
+		return err
+	}
+
 	return documenter.Command(`-c .`).Run()
 }
 
