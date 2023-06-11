@@ -8,7 +8,7 @@ type Option func(p *Printer)
 // what the logical "before" state in the diff means.
 func WithBeforeText(text string) Option {
 	return func(p *Printer) {
-		p.BeforeText = text
+		p.beforeText = text
 	}
 }
 
@@ -16,7 +16,7 @@ func WithBeforeText(text string) Option {
 // what the logical "after" state in the diff means.
 func WithAfterText(text string) Option {
 	return func(p *Printer) {
-		p.AfterText = text
+		p.afterText = text
 	}
 }
 
@@ -24,7 +24,7 @@ func WithAfterText(text string) Option {
 // that will be printed both above and below each set of lines with diffs.
 func WithBuffer(buffer int) Option {
 	return func(p *Printer) {
-		p.Buffer = buffer
+		p.buffer = buffer
 	}
 }
 
@@ -32,7 +32,7 @@ func WithBuffer(buffer int) Option {
 // format portions of a line with inserted text that are not themselves changed.
 func WithInsertLineFormatter(f Formatter) Option {
 	return func(p *Printer) {
-		p.InsertLineFormatter = f
+		p.insertLineFormatter = f
 	}
 }
 
@@ -40,7 +40,7 @@ func WithInsertLineFormatter(f Formatter) Option {
 // format portions of a line where text has been inserted.
 func WithInsertTextFormatter(f Formatter) Option {
 	return func(p *Printer) {
-		p.InsertTextFormatter = f
+		p.insertTextFormatter = f
 	}
 }
 
@@ -48,7 +48,7 @@ func WithInsertTextFormatter(f Formatter) Option {
 // format any text that is not associated with insertion or deletion.
 func WithEqualFormatter(f Formatter) Option {
 	return func(p *Printer) {
-		p.EqualFormatter = f
+		p.equalFormatter = f
 	}
 }
 
@@ -56,7 +56,7 @@ func WithEqualFormatter(f Formatter) Option {
 // format portions of a line with deleted text that are not themselves changed.
 func WithDeleteLineFormatter(f Formatter) Option {
 	return func(p *Printer) {
-		p.DeleteLineFormatter = f
+		p.deleteLineFormatter = f
 	}
 }
 
@@ -64,7 +64,7 @@ func WithDeleteLineFormatter(f Formatter) Option {
 // format portions of a line where text has been deleted.
 func WithDeleteTextFormatter(f Formatter) Option {
 	return func(p *Printer) {
-		p.DeleteTextFormatter = f
+		p.deleteTextFormatter = f
 	}
 }
 
@@ -72,6 +72,6 @@ func WithDeleteTextFormatter(f Formatter) Option {
 // the name of the text being diffed at the top of the overall diff.
 func WithNameFormatter(f Formatter) Option {
 	return func(p *Printer) {
-		p.NameFormatter = f
+		p.nameFormatter = f
 	}
 }

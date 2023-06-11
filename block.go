@@ -17,7 +17,7 @@ func (p *Printer) getBlocks(lines []line) []block {
 			}
 
 			currentBlock = &block{}
-			startOfRange := maxInt(i-p.Buffer, 0)
+			startOfRange := maxInt(i-p.buffer, 0)
 			currentBlock.lines = append(currentBlock.lines, lines[startOfRange:i]...)
 			lastLineWithDiff = i - 1
 		}
@@ -26,15 +26,15 @@ func (p *Printer) getBlocks(lines []line) []block {
 		case l.HasDiff():
 			currentBlock.lines = append(currentBlock.lines, lines[lastLineWithDiff+1:i+1]...)
 			lastLineWithDiff = i
-		case i-lastLineWithDiff > p.Buffer:
-			currentBlock.lines = append(currentBlock.lines, lines[lastLineWithDiff+1:lastLineWithDiff+1+p.Buffer]...)
+		case i-lastLineWithDiff > p.buffer:
+			currentBlock.lines = append(currentBlock.lines, lines[lastLineWithDiff+1:lastLineWithDiff+1+p.buffer]...)
 			blocks = append(blocks, *currentBlock)
 			currentBlock = nil
 		}
 	}
 
 	if currentBlock != nil {
-		end := minInt(lastLineWithDiff+1+p.Buffer, len(lines))
+		end := minInt(lastLineWithDiff+1+p.buffer, len(lines))
 		currentBlock.lines = append(currentBlock.lines, lines[lastLineWithDiff+1:end]...)
 		blocks = append(blocks, *currentBlock)
 	}

@@ -14,19 +14,18 @@ import (
 type Formatter func(text string) string
 
 // Printer handles creating text-based diffs with several customization options.
-// While the printer can be created and customized directly, it is recommended
-// to instead use [NewPrinter] to create a printer that is pre-filled with the
-// default options.
+// Use [NewPrinter] to create a printer that is pre-filled with the default
+// options.
 type Printer struct {
-	BeforeText          string
-	AfterText           string
-	Buffer              int
-	InsertLineFormatter Formatter
-	InsertTextFormatter Formatter
-	EqualFormatter      Formatter
-	DeleteLineFormatter Formatter
-	DeleteTextFormatter Formatter
-	NameFormatter       Formatter
+	beforeText          string
+	afterText           string
+	buffer              int
+	insertLineFormatter Formatter
+	insertTextFormatter Formatter
+	equalFormatter      Formatter
+	deleteLineFormatter Formatter
+	deleteTextFormatter Formatter
+	nameFormatter       Formatter
 }
 
 // NewPrinter creates a new [Printer], optionally customized with the given
@@ -36,15 +35,15 @@ type Printer struct {
 // customizations.
 func NewPrinter(opts ...Option) Printer {
 	p := Printer{
-		BeforeText:          "(before)",
-		AfterText:           "(after)",
-		Buffer:              2,
-		InsertLineFormatter: func(s string) string { return aurora.Green(s).String() },
-		InsertTextFormatter: func(s string) string { return aurora.BgGreen(aurora.Black(s)).String() },
-		EqualFormatter:      func(s string) string { return aurora.Faint(s).String() },
-		DeleteLineFormatter: func(s string) string { return aurora.Red(s).String() },
-		DeleteTextFormatter: func(s string) string { return aurora.BgRed(aurora.Black(s)).String() },
-		NameFormatter:       func(s string) string { return aurora.Bold(s).String() },
+		beforeText:          "(before)",
+		afterText:           "(after)",
+		buffer:              2,
+		insertLineFormatter: func(s string) string { return aurora.Green(s).String() },
+		insertTextFormatter: func(s string) string { return aurora.BgGreen(aurora.Black(s)).String() },
+		equalFormatter:      func(s string) string { return aurora.Faint(s).String() },
+		deleteLineFormatter: func(s string) string { return aurora.Red(s).String() },
+		deleteTextFormatter: func(s string) string { return aurora.BgRed(aurora.Black(s)).String() },
+		nameFormatter:       func(s string) string { return aurora.Bold(s).String() },
 	}
 
 	for _, o := range opts {
@@ -112,9 +111,9 @@ func (p *Printer) serialize(name string, blocks []block) string {
 
 	builder.WriteString(fmt.Sprintf(
 		"%s - %s %s\n",
-		p.NameFormatter(name),
-		p.DeleteLineFormatter(p.BeforeText),
-		p.InsertLineFormatter(p.AfterText),
+		p.nameFormatter(name),
+		p.deleteLineFormatter(p.beforeText),
+		p.insertLineFormatter(p.afterText),
 	))
 
 	lastBlock := blocks[len(blocks)-1]
@@ -124,10 +123,10 @@ func (p *Printer) serialize(name string, blocks []block) string {
 
 	for i, b := range blocks {
 		if i > 0 {
-			builder.WriteString(p.EqualFormatter(strings.Repeat("~", leftNumLen)))
+			builder.WriteString(p.equalFormatter(strings.Repeat("~", leftNumLen)))
 			builder.WriteString("   ")
 
-			builder.WriteString(p.EqualFormatter(strings.Repeat("~", rightNumLen)))
+			builder.WriteString(p.equalFormatter(strings.Repeat("~", rightNumLen)))
 			builder.WriteRune('\n')
 		}
 
@@ -151,9 +150,9 @@ func (p *Printer) writeLine(b *strings.Builder, l line, leftNumLen, rightNumLen 
 
 	switch {
 	case !l.HasLeftNum():
-		b.WriteString(p.InsertLineFormatter("+"))
+		b.WriteString(p.insertLineFormatter("+"))
 	case !l.HasRightNum():
-		b.WriteString(p.DeleteLineFormatter("-"))
+		b.WriteString(p.deleteLineFormatter("-"))
 	default:
 		b.WriteRune(' ')
 	}
@@ -162,20 +161,20 @@ func (p *Printer) writeLine(b *strings.Builder, l line, leftNumLen, rightNumLen 
 	for _, s := range l.spans {
 		switch s.kind {
 		case DeleteDiffType:
-			b.WriteString(p.DeleteTextFormatter(s.text))
+			b.WriteString(p.deleteTextFormatter(s.text))
 		case EqualDiffType:
 			switch {
 			case l.HasLeftNum() && !l.HasRightNum():
-				b.WriteString(p.DeleteLineFormatter(s.text))
+				b.WriteString(p.deleteLineFormatter(s.text))
 			case l.HasRightNum() && !l.HasLeftNum():
-				b.WriteString(p.InsertLineFormatter(s.text))
+				b.WriteString(p.insertLineFormatter(s.text))
 			case l.HasLeftNum() && l.HasRightNum():
-				b.WriteString(p.EqualFormatter(s.text))
+				b.WriteString(p.equalFormatter(s.text))
 			default:
 				b.WriteString(s.text)
 			}
 		case InsertDiffType:
-			b.WriteString(p.InsertTextFormatter(s.text))
+			b.WriteString(p.insertTextFormatter(s.text))
 		}
 	}
 	b.WriteRune('\n')
@@ -185,9 +184,9 @@ func (p *Printer) writeLineNumbers(b *strings.Builder, l line, leftNumLen, right
 	if l.HasLeftNum() {
 		text := fmt.Sprintf("%*s | ", leftNumLen, strconv.Itoa(l.leftNumber))
 		if !l.HasRightNum() {
-			b.WriteString(p.DeleteLineFormatter(text))
+			b.WriteString(p.deleteLineFormatter(text))
 		} else {
-			b.WriteString(p.EqualFormatter(text))
+			b.WriteString(p.equalFormatter(text))
 		}
 	} else {
 		b.WriteString(fmt.Sprintf("%*s   ", leftNumLen, ""))
@@ -196,9 +195,9 @@ func (p *Printer) writeLineNumbers(b *strings.Builder, l line, leftNumLen, right
 	if l.HasRightNum() {
 		text := fmt.Sprintf("%*s | ", rightNumLen, strconv.Itoa(l.rightNumber))
 		if !l.HasLeftNum() {
-			b.WriteString(p.InsertLineFormatter(text))
+			b.WriteString(p.insertLineFormatter(text))
 		} else {
-			b.WriteString(p.EqualFormatter(text))
+			b.WriteString(p.equalFormatter(text))
 		}
 	} else {
 		b.WriteString(fmt.Sprintf("%*s   ", rightNumLen, ""))

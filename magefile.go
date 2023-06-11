@@ -4,6 +4,10 @@
 package main
 
 import (
+	"errors"
+	"fmt"
+	"strings"
+
 	"github.com/princjef/mageutil/bintool"
 	"github.com/princjef/mageutil/shellcmd"
 )
@@ -18,6 +22,12 @@ var documenter = bintool.Must(bintool.New(
 	"gomarkdoc{{.BinExt}}",
 	"0.4.1",
 	"https://github.com/princjef/gomarkdoc/releases/download/v{{.Version}}/gomarkdoc_{{.Version}}_{{.GOOS}}_{{.GOARCH}}{{.ArchiveExt}}",
+))
+
+var changelog = bintool.Must(bintool.New(
+	"git-chglog{{.BinExt}}",
+	"0.15.4",
+	"https://github.com/git-chglog/git-chglog/releases/download/v{{.Version}}/git-chglog_{{.Version}}_{{.GOOS}}_{{.GOARCH}}.tar.gz",
 ))
 
 func Lint() error {
@@ -46,6 +56,41 @@ func DocVerify() error {
 	}
 
 	return documenter.Command(`-c .`).Run()
+}
+
+func Release(version string) error {
+	if err := changelog.Ensure(); err != nil {
+		return err
+	}
+
+	out, err := shellcmd.Command(`git status --porcelain`).Output()
+	if err != nil {
+		return err
+	}
+
+	if strings.TrimSpace(string(out)) != "" {
+		return errors.New("detected uncommitted files. please commit all files before releasing")
+	}
+
+	out, err = shellcmd.Command(`git rev-parse --abbrev-ref HEAD`).Output()
+	if err != nil {
+		return err
+	}
+
+	if string(out) != "main" {
+		return fmt.Errorf("releases should only be made from the main branch. current branch is %s", string(out))
+	}
+
+	shellcmd.RunAll(
+		shellcmd.Command(fmt.Sprintf(`git tag v%s`, version)),
+		changelog.Command(""),
+		shellcmd.Command(fmt.Sprintf(`git commit -am 'chore: release v%s [skip ci]'`, version)),
+		shellcmd.Command(fmt.Sprintf(`git push origin v%s`, version)),
+		`git push origin main`,
+	)
+
+	fmt.Printf("Published release v%s", version)
+	return nil
 }
 
 func Test() error {
