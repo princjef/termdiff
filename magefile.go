@@ -77,17 +77,22 @@ func Release(version string) error {
 		return err
 	}
 
-	if string(out) != "main" {
-		return fmt.Errorf("releases should only be made from the main branch. current branch is %s", string(out))
+	outStr := strings.TrimSpace(string(out))
+
+	if outStr != "main" {
+		return fmt.Errorf("releases should only be made from the main branch. current branch is %s", outStr)
 	}
 
-	shellcmd.RunAll(
+	err = shellcmd.RunAll(
 		shellcmd.Command(fmt.Sprintf(`git tag v%s`, version)),
-		changelog.Command(""),
+		changelog.Command("-o CHANGELOG.md"),
 		shellcmd.Command(fmt.Sprintf(`git commit -am 'chore: release v%s [skip ci]'`, version)),
 		shellcmd.Command(fmt.Sprintf(`git push origin v%s`, version)),
 		`git push origin main`,
 	)
+	if err != nil {
+		return err
+	}
 
 	fmt.Printf("Published release v%s", version)
 	return nil
